@@ -1,31 +1,31 @@
-# 07 · Deploy runbook
+# 07 · 部署手册
 
-Prerequisites: Databricks CLI ≥ 0.230, a profile named `popmart`, and access to the `popmart`
-catalog with `CREATE_TABLE` / `CREATE_VOLUME` / `CREATE_MATERIALIZED_VIEW` on `popmart.default`.
+前置条件：Databricks CLI ≥ 0.230、一个名为 `popmart` 的 profile，且对 `popmart.default`
+拥有 `CREATE_TABLE` / `CREATE_VOLUME` / `CREATE_MATERIALIZED_VIEW` 权限。
 
 ```bash
-# 0. from the repo root
+# 0. 进入仓库根目录
 cd popmart-demo
 
-# 1. validate the bundle
+# 1. 校验 bundle
 databricks bundle validate -t dev --profile popmart
 
-# 2. deploy all resources (volume, job, pipeline, dashboard, genie space)
+# 2. 部署所有资源（Volume、作业、管道、仪表板、Genie 空间）
 databricks bundle deploy -t dev --profile popmart
 
-# 3. generate the CSV subset into the landing volume
+# 3. 生成 CSV 子集并写入落地 Volume
 databricks bundle run popmart_setup -t dev --profile popmart
 
-# 4. build Bronze -> Silver -> Gold
+# 4. 构建 Bronze -> Silver -> Gold
 databricks bundle run popmart_medallion -t dev --profile popmart
 
-# 5. open the dashboard + Genie
+# 5. 打开仪表板与 Genie
 databricks bundle summary -t dev --profile popmart
 ```
 
-Order matters: **deploy → setup job → pipeline**. The dashboard and Genie query the Gold
-tables, so they light up after step 4. To regenerate data, re-run steps 3–4 (use
-`--full-refresh-all` on the pipeline if you changed the CSV schema).
+顺序很重要：**部署 → 生成数据 → 运行管道**。仪表板与 Genie 查询 Gold 表，
+因此在第 4 步之后生效。若要重新生成数据，重跑第 3–4 步
+（如更改了 CSV 结构，请在管道上使用 `--full-refresh-all`）。
 
-### Tear down
+### 拆除
 `databricks bundle destroy -t dev --profile popmart`

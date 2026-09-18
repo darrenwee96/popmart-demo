@@ -1,7 +1,7 @@
-# 03 · Ingestion — Auto Loader (Bronze)
+# 03 · 摄取 —— Auto Loader（Bronze）
 
-`src/transformations/bronze.sql` defines **19 streaming tables**, one per source table, each
-ingesting its CSV folder with **Auto Loader** via `read_files`:
+`src/transformations/bronze.sql` 定义了 **19 张流式表**，每张对应一个源表，
+通过 **Auto Loader** 的 `read_files` 摄取各自的 CSV 文件夹：
 
 ```sql
 CREATE OR REFRESH STREAMING TABLE orders
@@ -11,10 +11,10 @@ SELECT * FROM STREAM read_files(
   format => 'csv', header => 'true', inferColumnTypes => 'true');
 ```
 
-- `${source_path}` = `/Volumes/${catalog}/${schema}/${landing_volume}` — injected from the
-  pipeline `configuration` block (`resources/medallion.pipeline.yml`), which is fed by bundle variables.
-- `inferColumnTypes` types numeric/date/decimal columns correctly so the Silver expectations
-  (e.g. `quantity > 0`) evaluate as intended.
-- Streaming + incremental: re-running the setup job and pipeline picks up new/changed files.
+- `${source_path}` = `/Volumes/${catalog}/${schema}/${landing_volume}` —— 由管道 `configuration`
+  注入（见 `resources/medallion.pipeline.yml`），其值来自 bundle 变量。
+- `inferColumnTypes` 会正确推断数值/日期/小数类型，使 Silver 层的数据质量校验
+  （例如 `quantity > 0`）按预期生效。
+- 流式 + 增量：重新运行生成作业与管道即可拾取新增/变更的文件。
 
-Bronze keeps the **source table names** unchanged, so Silver reads them by bare name.
+Bronze 保持**源表名不变**，因此 Silver 层可直接按名引用。
