@@ -39,20 +39,10 @@
 
 ## ✅ Databricks 如何端到端解决
 
-> 在真实场景中，两套数据库由 **Lakeflow Connect（CDC）** 实时摄取；本 Demo 因无数据库访问权限，改为**生成同构 CSV → 落地 Volume → Auto Loader 摄取**，其余环节完全一致。
+> **关于数据摄取（重要）：** 出于 **Demo 目的**，本仓库用脚本**生成了同构的假数据集（CSV）**，再经 Auto Loader 摄取。
+> **在生产环境中，这一步应改用 [Lakeflow Connect](https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/) 的托管 CDC**，直接从 MySQL / PostgreSQL 实时增量摄取真实数据；其余环节（Silver、Gold、Unity Catalog 治理、Genie、仪表板）与生产完全一致。
 
-```mermaid
-flowchart LR
-  subgraph SRC["数据源 → CSV"]
-    A["电商 · 9 张表"] --> V[("Unity Catalog Volume<br/>popmart.default.landing")]
-    B["零售运营 · 10 张表"] --> V
-  end
-  V -->|"Auto Loader"| BR["🥉 Bronze<br/>19 张流式表"]
-  BR --> SV["🥈 Silver<br/>清洗·一致化·统一销售事实<br/>+ 数据质量校验"]
-  SV --> GO["🥇 Gold<br/>8 张业务集市"]
-  GO --> DSH["📊 AI/BI 仪表板"]
-  GO --> GEN["💬 Genie 智能问答"]
-```
+![Databricks 端到端架构](docs/images/architecture-e2e.png)
 
 ### 1️⃣ 摄取 —— Lakeflow / Auto Loader
 一个声明式管道把 CSV 以 **Auto Loader** 流式摄取为 19 张 Bronze 表，表名与源系统完全一致，支持增量与自动 schema 推断。
