@@ -1,0 +1,30 @@
+# ============================================================================
+# Pop Mart — end-to-end omnichannel lakehouse (Databricks Asset Bundle)
+# CSV (volume) -> Auto Loader Bronze -> Silver (+DQ) -> Gold -> Genie + Dashboard
+# ============================================================================
+bundle:
+  name: popmart_e2e
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Target Unity Catalog catalog.
+    default: popmart
+  schema:
+    description: Target schema (Bronze/Silver/Gold tables + landing volume live here).
+    default: default
+  landing_volume:
+    description: UC volume that holds the landed CSV files for Auto Loader.
+    default: landing
+  warehouse_id:
+    description: SQL warehouse ID used by the Genie space and the AI/BI dashboard.
+    default: "b9e47ac054f9c981"
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-2e43b02f-eefb.cloud.databricks.com

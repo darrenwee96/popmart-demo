@@ -1,0 +1,7 @@
+resources:
+  volumes:
+    landing:
+      catalog_name: ${var.catalog}
+      schema_name: ${var.schema}
+      name: ${var.landing_volume}
+      comment: CSV landing zone for Auto Loader ingestion (Pop Mart demo).

@@ -1,0 +1,1413 @@
+{
+  "datasets": [
+    {
+      "name": "ds_sales",
+      "displayName": "Omnichannel sales (gold)",
+      "queryLines": [
+        "SELECT sale_date, channel, country, ip_name, product_type, units, revenue, line_count FROM gold_sales_daily "
+      ],
+      "columns": [
+        {
+          "displayName": "Total Revenue",
+          "description": "Sum of gross revenue",
+          "expression": "SUM(`revenue`)"
+        },
+        {
+          "displayName": "Total Units",
+          "description": "Sum of units sold",
+          "expression": "SUM(`units`)"
+        },
+        {
+          "displayName": "Sales Lines",
+          "description": "Number of sale lines",
+          "expression": "SUM(`line_count`)"
+        }
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_ip",
+      "displayName": "IP performance",
+      "queryLines": [
+        "SELECT ip_name, artist_name, total_revenue, total_units, online_revenue, offline_revenue, num_products FROM gold_ip_performance ORDER BY total_revenue DESC LIMIT 10 "
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_secret",
+      "displayName": "Secret-hit rates",
+      "queryLines": [
+        "SELECT ip_name, series_name, expected_ratio, total_draws, secret_hits, actual_hit_rate FROM gold_secret_hit_rates "
+      ],
+      "columns": [
+        {
+          "displayName": "Overall Hit Rate",
+          "description": "Secret hits / total draws",
+          "expression": "SUM(`secret_hits`)*1.0/SUM(`total_draws`)"
+        },
+        {
+          "displayName": "Total Draws",
+          "description": "Total blind-box draws",
+          "expression": "SUM(`total_draws`)"
+        }
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_tier",
+      "displayName": "Membership tiers",
+      "queryLines": [
+        "SELECT membership_tier, num_members, avg_ltv, total_revenue, omnichannel_pct FROM gold_member_tier_summary "
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_store",
+      "displayName": "Store performance",
+      "queryLines": [
+        "SELECT store_id, store_name, store_type, country, city, revenue, units, txns, avg_basket FROM gold_store_performance ORDER BY revenue DESC LIMIT 25 "
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_inventory",
+      "displayName": "Inventory health",
+      "queryLines": [
+        "SELECT store_id, store_name, store_type, country, num_skus, stockouts, below_reorder, stockout_rate FROM gold_inventory_health "
+      ],
+      "columns": [
+        {
+          "displayName": "Avg Stockout Rate",
+          "description": "Average stockout rate (fraction)",
+          "expression": "AVG(`stockout_rate`)/100"
+        }
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_omni",
+      "displayName": "Omnichannel customers",
+      "queryLines": [
+        "SELECT member_id, membership_tier, country, online_spend, offline_spend, total_spend, is_omnichannel FROM gold_omnichannel_customer "
+      ],
+      "columns": [
+        {
+          "displayName": "Omnichannel Rate",
+          "description": "Share of members buying online AND in-store",
+          "expression": "SUM(CASE WHEN `is_omnichannel`=true THEN 1 ELSE 0 END)*1.0/COUNT(`member_id`)"
+        }
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    },
+    {
+      "name": "ds_supply",
+      "displayName": "Supply chain",
+      "queryLines": [
+        "SELECT supplier_name, supplier_country, category, num_pos, total_cost, avg_actual_lead_days, avg_expected_lead_days FROM gold_supply_chain_supplier ORDER BY total_cost DESC LIMIT 12 "
+      ],
+      "catalog": "popmart",
+      "schema": "default"
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Omnichannel Overview",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1",
+      "layout": [
+        {
+          "widget": {
+            "name": "hdr1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Pop Mart \u2014 Omnichannel Sales Overview\n",
+                "Unified view across the **online store/app** (MySQL) and **physical retail + roboshops** (PostgreSQL), joined in the Lakehouse. Labubu leads the IP surge; blind boxes drive the bulk of revenue. Use the **Filters** page to slice by date, channel, country, or IP."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "measure(Total Revenue)",
+                      "expression": "MEASURE(`Total Revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Total Revenue",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Revenue)",
+                  "displayName": "Total Revenue",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_units",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "measure(Total Units)",
+                      "expression": "MEASURE(`Total Units`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Units Sold",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Units)",
+                  "displayName": "Units"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_lines",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "measure(Sales Lines)",
+                      "expression": "MEASURE(`Sales Lines`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Sales Lines",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Sales Lines)",
+                  "displayName": "Lines"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_omni",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_omni",
+                  "fields": [
+                    {
+                      "name": "measure(Omnichannel Rate)",
+                      "expression": "MEASURE(`Omnichannel Rate`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Omnichannel Members",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Omnichannel Rate)",
+                  "displayName": "Omnichannel %",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "line_trend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "monthly(sale_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `sale_date`)"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    },
+                    {
+                      "name": "channel",
+                      "expression": "`channel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "frame": {
+                "title": "Revenue trend by channel (monthly)",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(sale_date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Month"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                },
+                "color": {
+                  "fieldName": "channel",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "online",
+                        "color": "#4E5185"
+                      },
+                      {
+                        "value": "store",
+                        "color": "#FF5F46"
+                      },
+                      {
+                        "value": "roboshop",
+                        "color": "#FFA600"
+                      }
+                    ]
+                  },
+                  "displayName": "Channel"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 8,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "pie_channel",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    },
+                    {
+                      "name": "channel",
+                      "expression": "`channel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "frame": {
+                "title": "Revenue by channel",
+                "showTitle": true
+              },
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                },
+                "color": {
+                  "fieldName": "channel",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "online",
+                        "color": "#4E5185"
+                      },
+                      {
+                        "value": "store",
+                        "color": "#FF5F46"
+                      },
+                      {
+                        "value": "roboshop",
+                        "color": "#FFA600"
+                      }
+                    ]
+                  },
+                  "displayName": "Channel"
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 5,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_ip",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ip",
+                  "fields": [
+                    {
+                      "name": "ip_name",
+                      "expression": "`ip_name`"
+                    },
+                    {
+                      "name": "sum(total_revenue)",
+                      "expression": "SUM(`total_revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "frame": {
+                "title": "Top 10 IPs by revenue",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(total_revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                },
+                "y": {
+                  "fieldName": "ip_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "IP"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_country",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "frame": {
+                "title": "Revenue by country",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                },
+                "y": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Country"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 11,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_tier",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_tier",
+                  "fields": [
+                    {
+                      "name": "membership_tier",
+                      "expression": "`membership_tier`"
+                    },
+                    {
+                      "name": "sum(avg_ltv)",
+                      "expression": "SUM(`avg_ltv`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "frame": {
+                "title": "Avg lifetime value by membership tier",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "membership_tier",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Tier"
+                },
+                "y": {
+                  "fieldName": "sum(avg_ltv)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Avg LTV"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_ptype",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "product_type",
+                      "expression": "`product_type`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "frame": {
+                "title": "Revenue by product type",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "product_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Product type"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 17,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "blindbox_ops",
+      "displayName": "Blind Box & Operations",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1",
+      "layout": [
+        {
+          "widget": {
+            "name": "hdr2",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Blind Box Economics & Operations\n",
+                "Secret-figure hit rates track the designed odds (~1/72\u20131/144). Store, roboshop, inventory and supply-chain health from the retail (PostgreSQL) source."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_hit",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_secret",
+                  "fields": [
+                    {
+                      "name": "measure(Overall Hit Rate)",
+                      "expression": "MEASURE(`Overall Hit Rate`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Secret-hit rate",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Overall Hit Rate)",
+                  "displayName": "Hit rate",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_draws",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_secret",
+                  "fields": [
+                    {
+                      "name": "measure(Total Draws)",
+                      "expression": "MEASURE(`Total Draws`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Total blind-box draws",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Draws)",
+                  "displayName": "Draws"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_stockout",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_inventory",
+                  "fields": [
+                    {
+                      "name": "measure(Avg Stockout Rate)",
+                      "expression": "MEASURE(`Avg Stockout Rate`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Avg stockout rate",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Avg Stockout Rate)",
+                  "displayName": "Stockout %",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_lead",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_supply",
+                  "fields": [
+                    {
+                      "name": "avg(avg_actual_lead_days)",
+                      "expression": "AVG(`avg_actual_lead_days`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "frame": {
+                "title": "Avg supplier lead time",
+                "showTitle": true
+              },
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(avg_actual_lead_days)",
+                  "displayName": "Days",
+                  "format": {
+                    "type": "number-plain",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "tbl_secret",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_secret",
+                  "fields": [
+                    {
+                      "name": "ip_name",
+                      "expression": "`ip_name`"
+                    },
+                    {
+                      "name": "series_name",
+                      "expression": "`series_name`"
+                    },
+                    {
+                      "name": "total_draws",
+                      "expression": "`total_draws`"
+                    },
+                    {
+                      "name": "secret_hits",
+                      "expression": "`secret_hits`"
+                    },
+                    {
+                      "name": "actual_hit_rate",
+                      "expression": "`actual_hit_rate`"
+                    },
+                    {
+                      "name": "expected_ratio",
+                      "expression": "`expected_ratio`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "frame": {
+                "title": "Secret-hit rate by series (actual vs designed)",
+                "showTitle": true
+              },
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "ip_name",
+                    "displayName": "IP"
+                  },
+                  {
+                    "fieldName": "series_name",
+                    "displayName": "Series"
+                  },
+                  {
+                    "fieldName": "total_draws",
+                    "displayName": "Draws"
+                  },
+                  {
+                    "fieldName": "secret_hits",
+                    "displayName": "Secret hits"
+                  },
+                  {
+                    "fieldName": "actual_hit_rate",
+                    "displayName": "Actual rate",
+                    "format": {
+                      "type": "number-percent",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 2
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "expected_ratio",
+                    "displayName": "Designed rate",
+                    "format": {
+                      "type": "number-percent",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_stockout_type",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_inventory",
+                  "fields": [
+                    {
+                      "name": "store_type",
+                      "expression": "`store_type`"
+                    },
+                    {
+                      "name": "avg(stockout_rate)",
+                      "expression": "AVG(`stockout_rate`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "frame": {
+                "title": "Avg stockout rate by store type (%)",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "store_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Store type"
+                },
+                "y": {
+                  "fieldName": "avg(stockout_rate)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Stockout rate %"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 5,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "tbl_store",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_store",
+                  "fields": [
+                    {
+                      "name": "store_name",
+                      "expression": "`store_name`"
+                    },
+                    {
+                      "name": "store_type",
+                      "expression": "`store_type`"
+                    },
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "revenue",
+                      "expression": "`revenue`"
+                    },
+                    {
+                      "name": "txns",
+                      "expression": "`txns`"
+                    },
+                    {
+                      "name": "avg_basket",
+                      "expression": "`avg_basket`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "frame": {
+                "title": "Top stores by revenue",
+                "showTitle": true
+              },
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "store_name",
+                    "displayName": "Store"
+                  },
+                  {
+                    "fieldName": "store_type",
+                    "displayName": "Type"
+                  },
+                  {
+                    "fieldName": "country",
+                    "displayName": "Country"
+                  },
+                  {
+                    "fieldName": "revenue",
+                    "displayName": "Revenue",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "decimalPlaces": {
+                        "type": "exact",
+                        "places": 0
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "txns",
+                    "displayName": "Txns"
+                  },
+                  {
+                    "fieldName": "avg_basket",
+                    "displayName": "Avg basket",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "decimalPlaces": {
+                        "type": "exact",
+                        "places": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_supply",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_supply",
+                  "fields": [
+                    {
+                      "name": "supplier_name",
+                      "expression": "`supplier_name`"
+                    },
+                    {
+                      "name": "avg(avg_actual_lead_days)",
+                      "expression": "AVG(`avg_actual_lead_days`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "frame": {
+                "title": "Supplier avg lead time (days)",
+                "showTitle": true
+              },
+              "encodings": {
+                "x": {
+                  "fieldName": "avg(avg_actual_lead_days)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Lead days"
+                },
+                "y": {
+                  "fieldName": "supplier_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Supplier"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "filters",
+      "displayName": "Filters",
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1",
+      "layout": [
+        {
+          "widget": {
+            "name": "f_date",
+            "queries": [
+              {
+                "name": "ds_date",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "sale_date",
+                      "expression": "`sale_date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "frame": {
+                "title": "Date",
+                "showTitle": true
+              },
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "sale_date",
+                    "queryName": "ds_date"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f_channel",
+            "queries": [
+              {
+                "name": "ds_ch",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "channel",
+                      "expression": "`channel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "frame": {
+                "title": "Channel",
+                "showTitle": true
+              },
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "channel",
+                    "queryName": "ds_ch",
+                    "displayName": "Channel"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f_country",
+            "queries": [
+              {
+                "name": "ds_co",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "frame": {
+                "title": "Country",
+                "showTitle": true
+              },
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "country",
+                    "queryName": "ds_co",
+                    "displayName": "Country"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f_ip",
+            "queries": [
+              {
+                "name": "ds_ipf",
+                "query": {
+                  "datasetName": "ds_sales",
+                  "fields": [
+                    {
+                      "name": "ip_name",
+                      "expression": "`ip_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "frame": {
+                "title": "IP",
+                "showTitle": true
+              },
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "ip_name",
+                    "queryName": "ds_ipf",
+                    "displayName": "IP"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ]
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#FCFCFC",
+        "dark": "#1F272D"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "widgetBorderColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "fontColor": {
+        "light": "#11171C",
+        "dark": "#E8ECF0"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#8ACAFF"
+      },
+      "visualizationColors": [
+        "#FF5F46",
+        "#FFA600",
+        "#DE5582",
+        "#995495",
+        "#4E5185",
+        "#1D425C",
+        "#00A972"
+      ],
+      "widgetHeaderAlignment": "LEFT"
+    },
+    "genieSpace": {
+      "isEnabled": true,
+      "overrideId": "01f1b265d6261c2e83d5e2edfef60c31",
+      "enablementMode": "ENABLED"
+    }
+  }
+}

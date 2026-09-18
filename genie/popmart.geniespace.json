@@ -1,0 +1,163 @@
+{
+  "version": 2,
+  "instructions": {
+    "text_instructions": [
+      {
+        "id": "6b38f4f096d24e39b4cb1722eea69bc3",
+        "content": [
+          "This space covers Pop Mart, a designer/blind-box toy company. Data unifies two source systems: the online DTC store/app (ecommerce) and physical retail + roboshop vending machines (retail). Channels are 'online', 'store', and 'roboshop'. All revenue is in USD. Data spans ~24 months ending 2026-09-17. Blind-box 'secret' figures are rare hidden figures (~1/72 to 1/144 odds); gold_secret_hit_rates has actual vs designed rates. An 'omnichannel' member buys BOTH online and in-store (gold_omnichannel_customer.is_omnichannel). IP means an artist brand like 'The Monsters (Labubu)', 'Molly', 'Skullpanda'. Prefer the gold_* marts for rollups (they are pre-aggregated); use silver_fact_sales for line-level omnichannel detail. Always summarize the answer in business language and state the channel/time filters applied."
+        ]
+      }
+    ],
+    "example_question_sqls": [
+      {
+        "id": "1e0aff597c8c455f973ad3105da44601",
+        "question": [
+          "Revenue by IP, online vs in-store"
+        ],
+        "sql": [
+          "SELECT ip_name, total_revenue, online_revenue, offline_revenue\n",
+          "FROM `popmart`.`default`.`gold_ip_performance`\n",
+          "ORDER BY total_revenue DESC"
+        ],
+        "usage_guidance": [
+          "Top IPs and their channel split."
+        ]
+      },
+      {
+        "id": "9182c223c1324118a0a102c0d543ef94",
+        "question": [
+          "Secret-hit rate vs designed odds"
+        ],
+        "sql": [
+          "SELECT ip_name, series_name, total_draws, actual_hit_rate, expected_ratio\n",
+          "FROM `popmart`.`default`.`gold_secret_hit_rates`\n",
+          "ORDER BY total_draws DESC"
+        ],
+        "usage_guidance": [
+          "Blind-box secret odds, actual vs designed."
+        ]
+      },
+      {
+        "id": "f7b91e022af34c3fa3a02f7ac8f2db72",
+        "question": [
+          "Monthly revenue by channel"
+        ],
+        "sql": [
+          "SELECT DATE_TRUNC('MONTH', sale_date) AS month, channel, SUM(revenue) AS revenue\n",
+          "FROM `popmart`.`default`.`gold_sales_daily`\n",
+          "GROUP BY 1, 2 ORDER BY 1"
+        ],
+        "usage_guidance": [
+          "Channel trend over time."
+        ]
+      }
+    ]
+  },
+  "data_sources": {
+    "tables": [
+      {
+        "identifier": "popmart.default.gold_inventory_health"
+      },
+      {
+        "identifier": "popmart.default.gold_ip_performance"
+      },
+      {
+        "identifier": "popmart.default.gold_member_tier_summary"
+      },
+      {
+        "identifier": "popmart.default.gold_omnichannel_customer"
+      },
+      {
+        "identifier": "popmart.default.gold_sales_daily"
+      },
+      {
+        "identifier": "popmart.default.gold_secret_hit_rates"
+      },
+      {
+        "identifier": "popmart.default.gold_store_performance"
+      },
+      {
+        "identifier": "popmart.default.gold_supply_chain_supplier"
+      },
+      {
+        "identifier": "popmart.default.silver_dim_member"
+      },
+      {
+        "identifier": "popmart.default.silver_dim_product"
+      },
+      {
+        "identifier": "popmart.default.silver_dim_store"
+      },
+      {
+        "identifier": "popmart.default.silver_fact_sales"
+      }
+    ]
+  },
+  "config": {
+    "sample_questions": [
+      {
+        "id": "01e1e30a974246dab2ccb3fd50854d05",
+        "question": [
+          "Which membership tier has the highest average lifetime value and omnichannel rate?"
+        ]
+      },
+      {
+        "id": "99422615e9454c2fb1434c3fce1431bb",
+        "question": [
+          "Which stores have the highest stockout rates?"
+        ]
+      },
+      {
+        "id": "bbb761f262474d6583b00930f801a05d",
+        "question": [
+          "Which IP generated the most revenue, and how is it split between online and in-store?"
+        ]
+      },
+      {
+        "id": "d78ba68bbe7845ca914e8b1dea4a85e7",
+        "question": [
+          "Show monthly revenue by channel over the last 12 months."
+        ]
+      },
+      {
+        "id": "ea44e32cfce14e659e7da1e7800b71a7",
+        "question": [
+          "What is the secret-figure hit rate by series, and how does it compare to the designed odds?"
+        ]
+      }
+    ]
+  },
+  "benchmarks": {
+    "questions": [
+      {
+        "id": "a4267f5ba0ce43be823f39216a86f595",
+        "question": [
+          "Which IP has the highest revenue?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT ip_name FROM `popmart`.`default`.`gold_ip_performance` ORDER BY total_revenue DESC LIMIT 1"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "b836279818194897bcc300a46ee87bf7",
+        "question": [
+          "What is total revenue across all channels?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT SUM(revenue) AS total_revenue FROM `popmart`.`default`.`gold_sales_daily`"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+resources:
+  jobs:
+    popmart_setup:
+      name: popmart_setup_generate_data
+      tasks:
+        - task_key: generate_seed_data
+          notebook_task:
+            notebook_path: ../src/setup/generate_seed_data.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              volume: ${var.landing_volume}
+              size: small
+      # No cluster block -> runs on serverless compute.

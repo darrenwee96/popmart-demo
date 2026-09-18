@@ -1,0 +1,16 @@
+resources:
+  pipelines:
+    popmart_medallion:
+      name: popmart_medallion
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      photon: true
+      continuous: false
+      channel: CURRENT
+      # Exposed to the SQL as ${source_path} -> Auto Loader reads /<volume>/<table>/
+      configuration:
+        source_path: /Volumes/${var.catalog}/${var.schema}/${var.landing_volume}
+      libraries:
+        - glob:
+            include: ../src/transformations/**
