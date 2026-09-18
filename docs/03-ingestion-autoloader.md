@@ -12,9 +12,9 @@ SELECT * FROM STREAM read_files(
 ```
 
 - `${source_path}` = `/Volumes/${catalog}/${schema}/${landing_volume}` —— 由管道 `configuration`
-  注入（见 `resources/medallion.pipeline.yml`），其值来自 bundle 变量。
+ 注入（见 `resources/medallion.pipeline.yml`），其值来自 bundle 变量。
 - `inferColumnTypes` 会正确推断数值/日期/小数类型，使 Silver 层的数据质量校验
-  （例如 `quantity > 0`）按预期生效。
+ （例如 `quantity > 0`）按预期生效。
 - 流式 + 增量：重新运行生成作业与管道即可拾取新增/变更的文件。
 
 Bronze 保持**源表名不变**，因此 Silver 层可直接按名引用。

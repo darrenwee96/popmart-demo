@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🧸 Pop Mart 全渠道湖仓 · 端到端 Demo
+# Pop Mart 全渠道湖仓 · 端到端 Demo
 
 **从两套业务系统到全渠道智能 —— 在一个 Databricks Lakehouse 上完成摄取、治理、分析与 AI**
 
@@ -13,13 +13,13 @@
 
 ---
 
-## 📖 业务背景
+## 业务背景
 
 **泡泡玛特（Pop Mart）** 是一家潮流玩具零售商，以「盲盒」和 IP 形象（如 Labubu、Molly、Skullpanda）闻名。它的生意天然是**全渠道**的：
 
-- 🛒 **线上**：App（iOS / Android）与官网直营商城，包含在线「抽盒」玩法；
-- 🏬 **线下**：直营门店、Pop Bakery 主题店；
-- 🤖 **机器人商店（Roboshop）**：遍布商场的自动贩卖机。
+- **线上**：App（iOS / Android）与官网直营商城，包含在线「抽盒」玩法；
+- **线下**：直营门店、Pop Bakery 主题店；
+- **机器人商店（Roboshop）**：遍布商场的自动贩卖机。
 
 数据却分散在两套互不相通的系统里：
 
@@ -28,7 +28,7 @@
 | 电商系统（原 MySQL） | 会员、订单、商品、抽盒、评价 | 9 |
 | 零售运营系统（原 PostgreSQL） | 门店、机器人商店、库存、POS、供应链 | 10 |
 
-### 💢 面临的挑战
+### 面临的挑战
 - **数据孤岛**：线上与线下无法拉通，看不清一个会员的完整旅程；
 - **缺乏统一口径**：营收、IP 表现、盲盒中签率各算各的；
 - **数据质量无保障**：脏数据直接流入报表；
@@ -37,39 +37,39 @@
 
 ---
 
-## ✅ Databricks 如何端到端解决
+## Databricks 如何端到端解决
 
 > **关于数据摄取（重要）：** 出于 **Demo 目的**，本仓库用脚本**生成了同构的假数据集（CSV）**，再经 Auto Loader 摄取。
 > **在生产环境中，这一步应改用 [Lakeflow Connect](https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/) 的托管 CDC**，直接从 MySQL / PostgreSQL 实时增量摄取真实数据；其余环节（Silver、Gold、Unity Catalog 治理、Genie、仪表板）与生产完全一致。
 
 ![Databricks 端到端架构](docs/images/architecture-e2e.png)
 
-### 1️⃣ 摄取 —— Lakeflow / Auto Loader
+### 1. 摄取 —— Lakeflow / Auto Loader
 一个声明式管道把 CSV 以 **Auto Loader** 流式摄取为 19 张 Bronze 表，表名与源系统完全一致，支持增量与自动 schema 推断。
 
-### 2️⃣ 转换 —— 声明式奖章架构（Lakeflow SDP）
+### 2. 转换 —— 声明式奖章架构（Lakeflow SDP）
 一条 **Spark 声明式管道** 定义 Silver + Gold：
 - **Silver**：清洗、一致化的维度与事实，并把线上订单和门店/机器人商店 POS 合并成一张 **统一全渠道销售事实表** `silver_fact_sales`；
 - **数据质量 Expectations**（分级处理）：主键 `FAIL UPDATE`、事实脏数据 `DROP ROW` 隔离、软性指标告警 —— 全部体现在管道的 **Data Quality** 面板；
 - **Gold**：8 张开箱即用的业务集市（营收、IP 表现、盲盒中签率、全渠道客户、会员分层、门店表现、库存健康、供应链）。
 
-### 3️⃣ 治理 —— Unity Catalog
+### 3. 治理 —— Unity Catalog
 全流程由 **Unity Catalog** 统一治理：一个三级命名空间 `catalog.schema.object`、统一权限模型、自动血缘、审计与发现 —— 数据与 AI 资产尽在其中。
 
 ![Unity Catalog 治理](docs/images/architecture-unity.png)
 
-### 4️⃣ 平台 —— Lakeflow 一体化
+### 4. 平台 —— Lakeflow 一体化
 摄取（Connect）、声明式管道（SDP）、编排（Jobs）与低代码准备（Designer）同属 **Lakeflow**，面向智能体时代的数据平台。
 
 ![Lakeflow 平台](docs/images/architecture-lakeflow.png)
 
-### 5️⃣ 消费 —— 仪表板 + Genie
-- 📊 **AI/BI 仪表板**：8 个数据集、3 个页面，覆盖全渠道营收、IP、门店与供应链；
-- 💬 **Genie 智能问答**：业务用户用自然语言直接提问（「哪个 IP 营收最高？线上线下如何拆分？」），无需写 SQL。
+### 5. 消费 —— 仪表板 + Genie
+- **AI/BI 仪表板**：8 个数据集、3 个页面，覆盖全渠道营收、IP、门店与供应链；
+- **Genie 智能问答**：业务用户用自然语言直接提问（「哪个 IP 营收最高？线上线下如何拆分？」），无需写 SQL。
 
 ---
 
-## 🗂️ 仓库内容（全部为 DAB 资源）
+## 仓库内容（全部为 DAB 资源）
 
 ```
 popmart-demo/
@@ -103,7 +103,7 @@ popmart-demo/
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 前置条件：Databricks CLI ≥ 0.230、名为 `popmart` 的 profile、对 `popmart.default` 拥有建表/建卷权限。
 
@@ -131,7 +131,7 @@ databricks bundle summary -t dev --profile popmart
 
 ---
 
-## 📦 数据集（全部 19 张表）
+## 数据集（全部 19 张表）
 
 | 域 | 表 |
 |---|---|
@@ -142,7 +142,7 @@ databricks bundle summary -t dev --profile popmart
 
 ---
 
-## 🎯 业务价值
+## 业务价值
 
 - **全渠道拉通**：线上 + 门店 + 机器人商店，会员旅程一次查询即得；
 - **可信数据**：数据质量校验内建于管道，脏数据在进入 Gold 前被隔离；
